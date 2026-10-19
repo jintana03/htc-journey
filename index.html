@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HTC Journey · Newsroom formatter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">HTC</span><span>Journey formatter</span></div>
+      <span class="badge">TEAM TOOL · v1</span>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">NEWSROOM WORKFLOW</div>
+      <h1>วางโฟลเดอร์ข่าว แล้วส่งออกเป็น HTML พร้อมใช้</h1>
+      <p class="lede">แปลงบทความและรูปภาพตามรูปแบบ HTC Journey ในเครื่องของคุณ ชื่อภาพถูกสร้างอัตโนมัติเป็น <code>YYYYMMDD-HHmmss-ลำดับ.webp</code></p>
+      <div class="rule"></div>
+      <div class="workflow"><span class="step active">01 · DROP</span><span class="connector"></span><span class="step">02 · CHECK</span><span class="connector"></span><span class="step">03 · EXPORT</span></div>
+    </section>
+
+    <section class="workspace-grid">
+      <div class="panel input-panel">
+        <div class="panel-heading"><div><div class="kicker">INPUT FOLDER</div><h2>โยนข้อมูลเข้ามา</h2></div><span class="panel-index">01</span></div>
+        <label class="dropzone" id="dropzone" for="folderInput">
+          <input id="folderInput" type="file" webkitdirectory directory multiple accept=".docx,.doc,.txt,.html,.htm,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg" />
+          <span class="drop-icon">↥</span>
+          <strong>ลากโฟลเดอร์มาวางที่นี่</strong>
+          <span>หรือคลิกเพื่อเลือกโฟลเดอร์จากเครื่อง</span>
+          <small>รองรับ DOCX, HTML, TXT และรูปภาพทั่วไป</small>
+        </label>
+        <div class="field-row">
+          <label class="field"><span>ชื่อบทความ</span><input id="articleTitle" type="text" placeholder="เช่น HTC Journey: ..." /></label>
+          <label class="field"><span>วันที่สร้างชื่อไฟล์</span><input id="dateInput" type="datetime-local" /></label>
+        </div>
+        <div class="note"><span>i</span><p>ภาพแรกจะถูก crop เป็น <b>1400 × 700</b> px ส่วนภาพถัดไปจะย่อให้กว้างไม่เกิน <b>1000</b> px โดยคงอัตราส่วนภาพ</p></div>
+      </div>
+
+      <div class="panel output-panel">
+        <div class="panel-heading"><div><div class="kicker">OUTPUT PREVIEW</div><h2>ตรวจสอบก่อนส่งออก</h2></div><span class="panel-index">02</span></div>
+        <div class="empty-state" id="emptyState"><div class="empty-orbit">◎</div><p>ยังไม่มีข้อมูล</p><small>เลือกโฟลเดอร์เพื่อดูรายการไฟล์และตัวอย่าง HTML</small></div>
+        <div class="file-list" id="fileList" hidden></div>
+        <div class="preview-card" id="previewCard" hidden><div class="preview-label">LIVE HTML PREVIEW</div><article id="previewArticle"></article></div>
+      </div>
+    </section>
+
+    <section class="export-bar">
+      <div><div class="kicker">READY WHEN YOU ARE</div><strong id="statusText">เลือกโฟลเดอร์เพื่อเริ่มต้น</strong><span id="statusMeta">ไฟล์ทั้งหมดจะถูกประมวลผลในเบราว์เซอร์</span></div>
+      <div class="actions"><button class="button ghost" id="downloadHtml" disabled>ดาวน์โหลด HTML</button><button class="button primary" id="downloadZip" disabled>ส่งออกแพ็กเกจ ZIP <span>→</span></button></div>
+    </section>
+    <footer><span>HTC Journey formatter</span><span>สร้างไฟล์ภายในเครื่อง · ไม่มีการอัปโหลดเนื้อหา</span></footer>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
