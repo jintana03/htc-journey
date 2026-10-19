@@ -14,10 +14,12 @@ function localStamp(value) {
 function setDefaultDate(){ const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); dateInput.value = now.toISOString().slice(0,19); }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
 function filenameOf(file){ return file.webkitRelativePath || file.name; }
+function isGeneratedContent(file){ return /^htc-journey(?:[-_].*)?\.html?$/i.test(file.name); }
 function chooseContent(files){
-  return files.find(f=>/\.html?$/i.test(f.name))
-    || files.find(f=>/\.txt$/i.test(f.name))
-    || files.find(f=>/\.docx$/i.test(f.name));
+  const usable=files.filter(file=>!isGeneratedContent(file));
+  return usable.find(f=>/\.html?$/i.test(f.name))
+    || usable.find(f=>/\.txt$/i.test(f.name))
+    || usable.find(f=>/\.docx$/i.test(f.name));
 }
 async function docToHtml(file){
   const ext = file.name.toLowerCase();
