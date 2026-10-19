@@ -11,7 +11,7 @@ function localStamp(value) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Bangkok', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23' }).formatToParts(date).reduce((a,p)=>(a[p.type]=p.value,a),{});
   return `${parts.year}${parts.month}${parts.day}-${parts.hour}${parts.minute}${parts.second}`;
 }
-function setDefaultDate(){ const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); dateInput.value = now.toISOString().slice(0,16); }
+function setDefaultDate(){ const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); dateInput.value = now.toISOString().slice(0,19); }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
 function filenameOf(file){ return file.webkitRelativePath || file.name; }
 function chooseContent(files){ return files.find(f=>/\.docx$/i.test(f.name)) || files.find(f=>/\.(html?|txt)$/i.test(f.name)); }
