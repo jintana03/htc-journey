@@ -1,0 +1,3 @@
+*.tar.gz
+.sites-checkout/
+.sites-checkout-*/
