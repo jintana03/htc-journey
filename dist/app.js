@@ -113,9 +113,11 @@ function htcInline(node){
     if(['IMG','SCRIPT','STYLE'].includes(child.tagName))return '';
     if(child.tagName==='BR')return ' ';
     const text=htcInline(child);
+    if(child.tagName==='A'&&child.getAttribute('href'))return `<a href="${htcAttr(child.getAttribute('href'))}" target="_blank" rel="noopener noreferrer">${text}</a>`;
     return ['B','STRONG'].includes(child.tagName)?`<strong>${text}</strong>`:text;
   }).join('');
 }
+function htcAttr(value){return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function htcList(node,depth=1,nested=false){
   const tag=node.tagName.toLowerCase();
   const className=tag==='ol'?'list-number':nested?'pl-4':'list list--color-green ';
