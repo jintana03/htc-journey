@@ -1,0 +1,76 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const {JSDOM}=require('jsdom');
+const mammoth=require('mammoth');
+const sharp=require('sharp');
+
+async function main(){
+  const folder=process.argv[2];
+  assert.ok(folder,'Pass the source article folder');
+  const dom=new JSDOM(fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8'),{runScripts:'outside-only',url:'https://formatter.test/'});
+  const w=dom.window;
+  w.mammoth={...mammoth,convertToHtml:({arrayBuffer},options)=>mammoth.convertToHtml({buffer:Buffer.from(arrayBuffer)},options)};
+  w.URL.revokeObjectURL=()=>{};
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8'),dom.getInternalVMContext());
+  w.eval('window.testState=state;window.testProcess=process;window.testParse=htcParseSections;window.testBuild=htcBuildMarkup;');
+  const metadata=new Map();
+  for(const name of fs.readdirSync(folder).filter(name=>/\.jpg$/i.test(name))){metadata.set(name,await sharp(path.join(folder,name)).metadata());}
+  w.imageMetadata=metadata;
+  w.eval(`convertImage=async (file,index,options)=>{
+    const info=window.imageMetadata.get(file.name);
+    const width=index===0?1400:1000;
+    const date=new Date(Date.UTC(Number(options.stamp.slice(0,4)),Number(options.stamp.slice(4,6))-1,Number(options.stamp.slice(6,8)),Number(options.stamp.slice(9,11)),Number(options.stamp.slice(11,13)),Number(options.stamp.slice(13,15))));
+    const imageStamp=String(date.getUTCFullYear())+String(date.getUTCMonth()+1).padStart(2,'0')+String(date.getUTCDate()).padStart(2,'0')+'-'+String(date.getUTCHours()).padStart(2,'0')+String(date.getUTCMinutes()).padStart(2,'0')+String(date.getUTCSeconds()).padStart(2,'0');
+    return {name:imageStamp+'-'+index+'.webp',source:file.name,width,height:index===0?700:Math.round(info.height/info.width*1000),previewUrl:'blob:'+index};
+  };`);
+  const files=fs.readdirSync(folder).map(name=>({name,size:fs.statSync(path.join(folder,name)).size,arrayBuffer:async()=>{const bytes=fs.readFileSync(path.join(folder,name));return bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);}}));
+  await w.testProcess(files);
+  assert.equal(w.testState.outputImages.length,17);
+  const doc=new JSDOM(w.testState.fullHtml).window.document;
+  const blocks=[...doc.body.children];
+  assert.equal(blocks.length,11);
+  const order=blocks.map(block=>[...block.querySelectorAll('img')].map(img=>Number(img.getAttribute('src').match(/-(\d+)\.webp$/)[1])));
+  assert.deepEqual(order,[[0],[1],[2,3],[4],[5,6],[7],[8],[9],[10,12,13,11],[14],[15,16]]);
+  assert.equal(doc.querySelectorAll('img').length,17);
+  assert.equal(doc.querySelectorAll('h5.mb-3').length,1);
+  assert.equal(doc.querySelectorAll('h6').length,8);
+  assert.equal(blocks[0].querySelectorAll('p').length,4);
+  assert.equal(blocks[2].querySelectorAll('p').length,1);
+  assert.equal(blocks[3].querySelector('h6'),null);
+  assert.ok(blocks[3].querySelector('p').textContent.startsWith('โกยาวเล่าว่า'));
+  assert.deepEqual([...blocks[4].children].map(el=>el.tagName),['DIV','P','H6','P']);
+  assert.equal(blocks[1].querySelector('figure').className,'text-center mb-md-0');
+  assert.equal(blocks[1].querySelector('.row'),null,'Single image must use the standalone figure');
+  assert.deepEqual([...blocks[8].querySelectorAll('.row')].map(row=>[...row.children].map(el=>el.className)),[['col-md-3','col-md-3','col-md-3'],['col-md-9']]);
+  assert.deepEqual([...blocks[10].querySelector('.row').children].map(el=>el.className),['col-md-5','col-md-5']);
+  for(const block of blocks){assert.equal(block.className,'mb-5');assert.equal(block.querySelector('p:last-of-type').className,'mb-0');}
+  assert.equal(doc.querySelector('p img'),null);
+  assert.equal(doc.querySelector('img[src^="data:"]'),null);
+  assert.ok(!doc.body.textContent.includes('Content 3'));
+  assert.ok(!doc.body.textContent.includes('ประเภท : Website'));
+  assert.ok(!doc.body.textContent.includes('แผนโพสต์'));
+  assert.equal(w.document.querySelector('#htmlOutput').value,w.testState.fullHtml);
+  let copied;
+  Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async text=>{copied=text;}}});
+  await w.copyHtml();
+  assert.equal(copied,w.testState.fullHtml);
+  assert.equal(doc.querySelector('style,[style],b,em,i,span,html > body > article'),null);
+  await assert.rejects(w.testProcess(files.filter(file=>!file.name.startsWith('017 '))),/17.*16/);
+  const photos=files.filter(file=>/\.jpg$/i.test(file.name));
+  await w.testProcess([...files,...photos.map((file,index)=>({...file,name:`renamed-copy-${index+1}.jpg`}))]);
+  assert.equal(w.testState.outputImages.length,17,'34 byte-identical input entries with renamed copies must produce 17 images');
+  assert.equal(w.testState.sourceSummary.duplicates,17);
+  assert.equal(w.document.querySelector('#codeCard').hidden,false);
+  const distinctCopies=photos.map(file=>({...file,arrayBuffer:async()=>new Uint8Array([1,2,3]).buffer}));
+  await assert.rejects(w.testProcess([...files,...distinctCopies]),/17.*34/);
+  assert.equal(w.document.querySelectorAll('#fileList .file-item').length,34,'Show every unmatched file instead of guessing which to discard');
+  assert.equal(w.document.querySelector('#codeCard').hidden,true);
+  assert.equal(w.document.querySelector('#downloadZip').disabled,true);
+  console.log('Input selection: duplicate 34 entries -> 17 files; genuinely distinct 34 files remain visible for diagnosis.');
+  console.log('Real DOCX: 17 images, 11 blocks; standalone image and 3-portrait/1-landscape layout inferred from source dimensions; order, paragraphs, headings and mb-0 passed.');
+  console.log('Block image order: '+JSON.stringify(order));
+  dom.window.close();
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});

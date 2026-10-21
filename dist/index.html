@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <style>.note{color:#df5237}.note span{border-color:#df9b7d;color:#df5237}</style>
 </head>
 <body>
   <main class="shell">
@@ -38,7 +39,12 @@
           <label class="field"><span>ชื่อบทความ</span><input id="articleTitle" type="text" placeholder="เช่น HTC Journey: ..." /></label>
           <label class="field"><span>วันที่สร้างชื่อไฟล์</span><input id="dateInput" type="datetime-local" step="1" /></label>
         </div>
-        <div class="note"><span>i</span><p>ภาพแรกของบทความใช้ขนาด <b>1400 × 700</b> px ส่วนภาพถัดไปใช้ความกว้าง <b>1000</b> px โดยคงอัตราส่วนภาพ<br>โน๊ตเพิ่มเติม: ต้องนำภาพ Cover ที่ตัดเองขนาด <b>1200 × 625</b> px มาใช้</p></div>
+        <div class="note"><span>!</span>
+          <p>ภาพแรกของบทความใช้ขนาด <strong>1400 × 700</strong> px ส่วนภาพถัดไปใช้ width= <strong>"1000"</strong> px โดยคงอัตราส่วนภาพ</p>
+        </div>
+        <div class="note"><span>!</span>
+          <p>โน๊ตเพิ่มเติม: ภาพ Cover ต้องตัดเองขนาด <strong>1200 × 625</strong> px เท่านั้น</p>
+        </div>
       </div>
 
       <div class="panel output-panel">
