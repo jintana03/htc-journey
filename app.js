@@ -81,8 +81,21 @@ async function convertImage(file,index,options={}){
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.9)); URL.revokeObjectURL(img.src); const stamp=options.stamp||state.stamp; const elapsedSeconds=options.startedAt?Math.floor((Date.now()-options.startedAt)/1000):0; return {name:cover?`${stamp}-cover.webp`:imageName(index,stamp,elapsedSeconds),blob,width:targetW,height:targetH,source:file.name,previewUrl:URL.createObjectURL(blob)};
 }
 function saveBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+function readEntryFiles(items){
+  const output=[];
+  const readEntry=(entry,parent='')=>new Promise((resolve,reject)=>{
+    if(entry.isFile){entry.file(file=>{try{Object.defineProperty(file,'webkitRelativePath',{value:`${parent}${file.name}`});}catch{} output.push(file);resolve();},reject);return;}
+    const reader=entry.createReader(), readBatch=()=>reader.readEntries(async entries=>{if(!entries.length){resolve();return;}for(const child of entries)await readEntry(child,`${parent}${entry.name}/`);readBatch();},reject);readBatch();
+  });
+  return Promise.all([...items].map(item=>item.webkitGetAsEntry?.()).filter(Boolean).map(entry=>readEntry(entry))).then(()=>output);
+}
+async function droppedFiles(dataTransfer){
+  const entries=[...(dataTransfer.items||[])].filter(item=>item.kind==='file'&&item.webkitGetAsEntry);
+  if(entries.length)return readEntryFiles(entries);
+  return Array.from(dataTransfer.files||[]);
+}
 input.addEventListener('change',e=>process(e.target.files).catch(err=>alert(err.message)));
-['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('dragover')})); ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('dragover')})); dropzone.addEventListener('drop',e=>{const files=e.dataTransfer.files;if(files.length)process(files).catch(err=>alert(err.message))});
+['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('dragover')})); ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('dragover')})); dropzone.addEventListener('drop',async e=>{const files=await droppedFiles(e.dataTransfer);if(files.length)process(files).catch(err=>alert(err.message))});
 $('#downloadHtml').addEventListener('click',downloadHtml); $('#downloadZip').addEventListener('click',downloadZip); $('#copyHtml').addEventListener('click',copyHtml); $('#copyHtmlBottom').addEventListener('click',copyHtml);
 
 // HTC Journey template layer: preserve the canonical newsroom wrappers/classes.
