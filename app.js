@@ -162,12 +162,19 @@ function htcStripLeadingMetadata(root){
     const root=d.querySelector('#content-root'); htcStripLeadingMetadata(root);
     const sections=[]; let current={heading:'',body:[]};
     const normalizeText=value=>String(value||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+    const isStandaloneBold=el=>{
+      if(el.tagName!=='P') return false;
+      const text=normalizeText(el.textContent); if(!text||text.length>160||/^["“'‘]/.test(text)) return false;
+      const meaningful=[...el.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE&&normalizeText(node.textContent));
+      const child=el.children.length===1?el.children[0]:null;
+      return meaningful.length===0&&!!child&&/^(STRONG|B)$/.test(child.tagName)&&normalizeText(child.textContent)===text;
+    };
     if(!state.canonicalTemplate&&root.querySelector('img')){
       return htcParseImagePositions(root,el=>/^H[1-6]$/.test(el.tagName));
     }
     [...root.children].forEach(el=>{
       const tag=el.tagName;
-      const isHeading=/^H[1-6]$/.test(tag);
+      const isHeading=/^H[1-6]$/.test(tag)||(isStandaloneBold(el)&&!current.heading&&!current.body.length);
       if(isHeading){
         const heading=normalizeText(el.textContent);
         if(!current.heading&&!current.body.length&&normalizeText(state.title)===heading) return;
@@ -183,6 +190,13 @@ function htcStripLeadingMetadata(root){
 function htcParseImagePositions(root,isHeading){
   const blocks=[];
   let current={imageIndices:[],content:[]},imageIndex=0;
+  const isStandaloneBold=el=>{
+    if(el.tagName!=='P') return false;
+    const text=String(el.textContent||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+    const meaningful=[...el.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE&&String(node.textContent||'').trim());
+    const child=el.children.length===1?el.children[0]:null;
+    return !!text&&meaningful.length===0&&!!child&&/^(STRONG|B)$/.test(child.tagName);
+  };
   const flush=()=>{if(current.imageIndices.length||current.content.length)blocks.push(current);current={imageIndices:[],content:[]};};
   const appendText=html=>{
     const doc=new DOMParser().parseFromString(html,'text/html');
@@ -198,7 +212,7 @@ function htcParseImagePositions(root,isHeading){
     text();return tokens;
   }
   for(const el of root.children){
-    if(isHeading(el)&&!el.querySelector('img')){
+    if((isHeading(el)||(isStandaloneBold(el)&&!current.content.length))&&!el.querySelector('img')){
       current.content.push(`<h6>${htcText(el.textContent.trim())}</h6>`);
     }else for(const token of split(el)){
       if(token.image){if(current.content.length)flush();current.imageIndices.push(imageIndex++);}

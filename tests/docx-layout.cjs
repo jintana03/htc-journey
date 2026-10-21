@@ -35,14 +35,14 @@ async function main(){
   assert.deepEqual(order,[[0],[1],[2,3],[4],[5,6],[7],[8],[9],[10,12,13,11],[14],[15,16]]);
   assert.equal(doc.querySelectorAll('img').length,17);
   assert.equal(doc.querySelectorAll('h5.mb-3').length,1);
-  assert.equal(doc.querySelectorAll('h6').length,8);
+  assert.equal(doc.querySelectorAll('h6').length,7);
   assert.equal(blocks[0].querySelectorAll('p').length,4);
   assert.equal(blocks[2].querySelectorAll('p').length,1);
   assert.equal(blocks[3].querySelector('h6'),null);
   assert.ok(blocks[3].querySelector('p').textContent.startsWith('โกยาวเล่าว่า'));
-  assert.deepEqual([...blocks[4].children].map(el=>el.tagName),['DIV','P','H6','P']);
+  assert.deepEqual([...blocks[4].children].map(el=>el.tagName),['DIV','P','P','P']);
   assert.equal(blocks[1].querySelector('figure').className,'text-center mb-md-0');
-  assert.equal(blocks[1].querySelector('.row'),null,'Single image must use the standalone figure');
+  assert.equal(blocks[1].querySelector('.row > .col-md-8').className,'col-md-8');
   assert.deepEqual([...blocks[8].querySelectorAll('.row')].map(row=>[...row.children].map(el=>el.className)),[['col-md-3','col-md-3','col-md-3'],['col-md-9']]);
   assert.deepEqual([...blocks[10].querySelector('.row').children].map(el=>el.className),['col-md-5','col-md-5']);
   for(const block of blocks){assert.equal(block.className,'mb-5');assert.equal(block.querySelector('p:last-of-type').className,'mb-0');}
