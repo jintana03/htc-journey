@@ -47,6 +47,7 @@ async function htcSelectSourceImages(files,content){
   return {images,duplicates,otherFolders:candidates.length-scoped.length};
 }
 function htcReportImageMismatch(images,expected){
+  $('#workspaceGrid')?.classList.add('is-processed');
   $('#inputPanel')?.classList.add('has-files');
   $('#emptyState').hidden=true;$('#fileList').hidden=false;
   $('#fileList').innerHTML=images.map(file=>`<div class="file-item"><span>${esc(filenameOf(file))}</span><span class="kind">SOURCE</span></div>`).join('');
@@ -350,6 +351,7 @@ async function process(files){
   }catch(error){discard();if(revision===processingRevision)throw error;}
 }
 function htcRender(content){
+  $('#workspaceGrid')?.classList.add('is-processed');
   $('#inputPanel')?.classList.add('has-files');
   $('#emptyState').hidden=true;$('#fileList').hidden=false;$('#previewCard').hidden=false;$('#fileList').innerHTML=[`<div class="file-item"><span>${esc(filenameOf(content))}</span><span class="kind">CONTENT</span></div>`,...(state.coverImage?[`<div class="file-item"><span>${esc(state.coverImage.name)} <small>1200×625</small></span><span class="kind">COVER</span></div>`]:[]),...state.outputImages.map(i=>`<div class="file-item"><span>${esc(i.name)} <small>${i.width}×${i.height}</small></span><span class="kind">WEBP</span></div>`)].join('');
   let preview=state.articleMarkup;state.outputImages.forEach(i=>preview=preview.replaceAll(htcImageSrc(i.name),i.previewUrl));$('#previewArticle').innerHTML=preview;$('#htmlOutput').value=state.fullHtml;$('#codeCard').hidden=false;$('#statusText').textContent=`พร้อมคัดลอกโค้ด · ${state.outputImages.length} ภาพ`;const ignored=state.ignoredImages?.length||0;$('#statusMeta').textContent=`${state.stamp} · ภาพแรก 1400×700 · ภาพถัดไปกว้าง 1000 px · Cover ให้นำไปตัดเอง 1200×625${ignored?` · ไม่ใช้รูปเกิน template ${ignored} ไฟล์`:''}`;$('#downloadHtml').disabled=false;$('#copyHtmlBottom').disabled=false;$('#downloadZip').disabled=false;
