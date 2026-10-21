@@ -2,7 +2,6 @@ const $ = (selector) => document.querySelector(selector);
 const state = { files: [], articleHtml: '', images: [], outputImages: [], stamp: '', title: '' };
 const input = $('#folderInput');
 const dropzone = $('#dropzone');
-const dateInput = $('#dateInput');
 const allowedImage = /\.(jpe?g|png|webp|gif|bmp|svg)$/i;
 const contentExt = /\.(docx?|txt|html?)$/i;
 let processingRevision = 0;
@@ -12,7 +11,6 @@ function localStamp(value) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Bangkok', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23' }).formatToParts(date).reduce((a,p)=>(a[p.type]=p.value,a),{});
   return `${parts.year}${parts.month}${parts.day}-${parts.hour}${parts.minute}${parts.second}`;
 }
-function setDefaultDate(){ const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); dateInput.value = now.toISOString().slice(0,19); }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
 function filenameOf(file){ return file.webkitRelativePath || file.name; }
 function isGeneratedContent(file){ return /^htc-journey(?:[-_].*)?\.html?$/i.test(file.name); }
@@ -85,7 +83,7 @@ async function convertImage(file,index,options={}){
 function saveBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 input.addEventListener('change',e=>process(e.target.files).catch(err=>alert(err.message)));
 ['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('dragover')})); ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('dragover')})); dropzone.addEventListener('drop',e=>{const files=e.dataTransfer.files;if(files.length)process(files).catch(err=>alert(err.message))});
-$('#articleTitle').addEventListener('input',()=>{if(state.files.length)process(state.files).catch(err=>alert(err.message))}); dateInput.addEventListener('change',()=>{if(state.files.length)process(state.files).catch(err=>alert(err.message))}); $('#downloadHtml').addEventListener('click',downloadHtml); $('#downloadZip').addEventListener('click',downloadZip); $('#copyHtml').addEventListener('click',copyHtml); $('#copyHtmlBottom').addEventListener('click',copyHtml); setDefaultDate();
+$('#downloadHtml').addEventListener('click',downloadHtml); $('#downloadZip').addEventListener('click',downloadZip); $('#copyHtml').addEventListener('click',copyHtml); $('#copyHtmlBottom').addEventListener('click',copyHtml);
 
 // HTC Journey template layer: preserve the canonical newsroom wrappers/classes.
 const htcStorageRoot = '/storage/newsroom/haadthip-journey';
@@ -297,8 +295,8 @@ async function process(files){
   const revision=++processingRevision;
   const list=Array.from(files);
   state.files=list;
-  let title=$('#articleTitle').value.trim();
-  const stamp=localStamp(dateInput.value);
+  let title='';
+  const stamp=localStamp();
   const content=chooseContent(list);
   if(!content)throw new Error('ไม่พบไฟล์ DOCX, HTML หรือ TXT ในโฟลเดอร์');
   const outputImages=[];
