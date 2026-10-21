@@ -19,11 +19,11 @@
       <button class="badge guide-trigger" id="guideTrigger" type="button" aria-haspopup="dialog" aria-controls="guideModal">คู่มือการใช้งาน</button>
     </header>
 
-    <section class="hero">
+    <section class="hero" style="padding-left: 80px; padding-right: 80px; padding-top: 20px;">
       <p class="lede">แปลงบทความและรูปภาพตามรูปแบบ HTC Journey ในเครื่องของคุณ ชื่อภาพถูกสร้างอัตโนมัติเป็น <code>YYYYMMDD-HHmmss-ลำดับ.webp</code></p>
     </section>
 
-    <section class="workspace-grid">
+    <section class="workspace-grid" style="padding-left: 80px; padding-right: 80px;">
       <div class="panel input-panel" id="inputPanel">
         <div class="panel-heading"><div><div class="kicker">INPUT FOLDER</div><h2>โยนข้อมูลเข้ามา</h2></div><span class="panel-index">01</span></div>
         <label class="dropzone" id="dropzone" for="folderInput">
@@ -48,7 +48,7 @@
       <section class="preview-wide" id="previewCard" hidden><div class="preview-heading"><div class="preview-label">LIVE HTML PREVIEW</div></div><article id="previewArticle"></article></section>
       <section class="code-wide" id="codeCard" hidden><div class="code-heading"><div class="preview-label">HTML CODE</div><div class="panel-tools"><button class="toggle-preview" type="button" data-target="previewCard" aria-controls="previewCard" aria-expanded="true">Hide preview</button><button class="button copy-button" id="copyHtml" type="button">คัดลอกโค้ด</button></div></div><textarea id="htmlOutput" readonly spellcheck="false" aria-label="HTML output"></textarea></section>
 
-    <section class="export-bar">
+    <section class="export-bar" style="margin-top: 26px;">
       <div><div class="kicker">READY WHEN YOU ARE</div><strong id="statusText">เลือกโฟลเดอร์เพื่อเริ่มต้น</strong><span id="statusMeta">ไฟล์ทั้งหมดจะถูกประมวลผลในเบราว์เซอร์</span></div>
       <div class="actions"><button class="button ghost" id="downloadHtml" disabled>ดาวน์โหลด HTML</button><button class="button primary" id="copyHtmlBottom" disabled>คัดลอกโค้ด <span>⧉</span></button><button class="button ghost" id="downloadZip" disabled>ส่งออกแพ็กเกจ ZIP</button></div>
     </section>
