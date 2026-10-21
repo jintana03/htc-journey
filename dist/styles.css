@@ -39,3 +39,4 @@ body{-webkit-font-smoothing:antialiased}
 @media(max-width:820px){.results-grid{grid-template-columns:1fr}}
 .workspace-grid .panel{min-height:0!important}
 .workspace-grid{align-items:stretch}.workspace-grid .panel{height:100%}
+.output-panel{display:flex;flex-direction:column}.output-panel .export-bar{margin-top:auto;background:#256b5c}
