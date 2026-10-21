@@ -24,7 +24,6 @@
     </section>
 
     <section class="workspace-grid">
-      <div class="left-stack">
       <div class="panel input-panel" id="inputPanel">
         <div class="panel-heading"><div><div class="kicker">INPUT FOLDER</div><h2>โยนข้อมูลเข้ามา</h2></div><span class="panel-index">01</span></div>
         <label class="dropzone" id="dropzone" for="folderInput">
@@ -48,10 +47,11 @@
           <div class="actions"><button class="button ghost" id="downloadHtml" disabled>ดาวน์โหลด HTML</button><button class="button primary" id="copyHtmlBottom" disabled>คัดลอกโค้ด <span>⧉</span></button><button class="button ghost" id="downloadZip" disabled>ส่งออกแพ็กเกจ ZIP</button></div>
         </section>
       </div>
-      <div class="right-stack">
-        <section class="code-wide" id="codeCard" hidden><div class="code-heading"><div class="preview-label">HTML CODE</div><button class="button copy-button" id="copyHtml" type="button">คัดลอกโค้ด</button></div><textarea id="htmlOutput" readonly spellcheck="false" aria-label="HTML output"></textarea></section>
-        <section class="preview-wide" id="previewCard" hidden><div class="preview-label">LIVE HTML PREVIEW</div><article id="previewArticle"></article></section>
-      </div>
+    </section>
+
+    <section class="results-grid">
+      <section class="preview-wide" id="previewCard" hidden><div class="preview-label">LIVE HTML PREVIEW</div><article id="previewArticle"></article></section>
+      <section class="code-wide" id="codeCard" hidden><div class="code-heading"><div class="preview-label">HTML CODE</div><button class="button copy-button" id="copyHtml" type="button">คัดลอกโค้ด</button></div><textarea id="htmlOutput" readonly spellcheck="false" aria-label="HTML output"></textarea></section>
     </section>
     <footer><span>HTC Journey formatter</span><span>สร้างไฟล์ภายในเครื่อง · ไม่มีการอัปโหลดเนื้อหา</span></footer>
   </main>
