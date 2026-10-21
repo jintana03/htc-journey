@@ -349,3 +349,10 @@ async function copyHtml(){
 }
 async function downloadHtml(){saveBlob(new Blob([state.fullHtml],{type:'text/html;charset=utf-8'}),'htc-journey.html');}
 async function downloadZip(){const zip=new JSZip();zip.file('htc-journey.html',state.fullHtml);const manifest=[...(state.coverImage?[{name:state.coverImage.name,width:1200,height:625,source:state.coverImage.source,type:'cover',src:htcImageSrc(state.coverImage.name)}]:[]),...state.outputImages.map(({name,width,height,source})=>({name,width,height,source,type:'article',src:htcImageSrc(name)}))];zip.file('image-manifest.json',JSON.stringify(manifest,null,2));const folder=zip.folder('images');state.outputImages.forEach(i=>folder.file(i.name,i.blob));if(state.coverImage)folder.file(state.coverImage.name,state.coverImage.blob);saveBlob(await zip.generateAsync({type:'blob'}),`htc-journey-${state.stamp}.zip`);}
+
+const guideTrigger=$('#guideTrigger');
+const guideModal=$('#guideModal');
+function setGuide(open){if(!guideModal)return;guideModal.hidden=!open;document.body.style.overflow=open?'hidden':'';if(open)guideModal.querySelector('.guide-close')?.focus();}
+guideTrigger?.addEventListener('click',()=>setGuide(true));
+guideModal?.querySelectorAll('[data-guide-close]').forEach(button=>button.addEventListener('click',()=>setGuide(false)));
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!guideModal?.hidden)setGuide(false);});

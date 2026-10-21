@@ -14,7 +14,7 @@
   <main class="shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark">HTC</span><span>Journey formatter</span></div>
-      <span class="badge">TEAM TOOL · v1</span>
+      <button class="badge guide-trigger" id="guideTrigger" type="button" aria-haspopup="dialog" aria-controls="guideModal">TEAM TOOL · v1</button>
     </header>
 
     <section class="hero">
@@ -63,6 +63,21 @@
     </section>
     <footer><span>HTC Journey formatter</span><span>สร้างไฟล์ภายในเครื่อง · ไม่มีการอัปโหลดเนื้อหา</span></footer>
   </main>
+  <div class="guide-modal" id="guideModal" hidden>
+    <div class="guide-backdrop" data-guide-close></div>
+    <section class="guide-dialog" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+      <div class="guide-dialog-heading"><div><div class="kicker">QUICK GUIDE</div><h2 id="guideTitle">คู่มือการใช้งาน</h2></div><button class="guide-close" type="button" aria-label="ปิดคู่มือ" data-guide-close>×</button></div>
+      <ol class="guide-steps">
+        <li><strong>เตรียมโฟลเดอร์</strong><span>ใส่ไฟล์บทความ DOCX, HTML หรือ TXT และรูปภาพประกอบไว้ในโฟลเดอร์เดียวกัน</span></li>
+        <li><strong>เลือกโฟลเดอร์</strong><span>ลากโฟลเดอร์มาวางในช่อง INPUT FOLDER หรือคลิกเพื่อเลือกจากเครื่อง</span></li>
+        <li><strong>กรอกข้อมูล</strong><span>ระบุชื่อบทความและวันที่–เวลาสำหรับชื่อไฟล์ภาพ</span></li>
+        <li><strong>ตรวจสอบผลลัพธ์</strong><span>ตรวจจำนวนภาพ ลำดับภาพ HTML CODE และ LIVE HTML PREVIEW</span></li>
+        <li><strong>นำไปใช้งาน</strong><span>กด “คัดลอกโค้ด” หรือ “ส่งออกแพ็กเกจ ZIP” ตามต้องการ</span></li>
+      </ol>
+      <div class="guide-note"><strong>รูปแบบภาพ:</strong> ภาพแรก 1400 × 700 px · ภาพถัดไปกว้าง 1000 px · Cover 1200 × 625 px ต้องตัดเอง</div>
+      <p class="guide-footnote">ระบบประมวลผลไฟล์ภายในเบราว์เซอร์ และไม่อัปโหลดเนื้อหาไปที่เซิร์ฟเวอร์</p>
+    </section>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
   <script src="app.js"></script>
