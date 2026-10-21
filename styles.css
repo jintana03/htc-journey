@@ -24,6 +24,7 @@ body{-webkit-font-smoothing:antialiased}
 .brand-icon{width:28px;height:28px;display:block;border-radius:7px}
 .preview-heading,.panel-tools{display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-tools{justify-content:flex-end}.toggle-preview{border:1px solid #a9cabf;background:#f8fcfa;color:var(--accent-dark);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer}.toggle-preview:hover{background:#e8f0ed}
 .results-grid.preview-hidden{grid-template-columns:1fr}.results-grid.preview-hidden .code-wide{grid-column:1}.results-grid.preview-hidden .preview-wide{padding-bottom:12px}
+.workspace-grid .panel{min-height:500px}.file-list{max-height:150px}
 .shell{max-width:none;width:100%}
 .workspace-grid .panel{min-height:545px}
 .dropzone{min-height:170px}
