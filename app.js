@@ -160,19 +160,12 @@ function htcStripLeadingMetadata(root){
     const root=d.querySelector('#content-root'); htcStripLeadingMetadata(root);
     const sections=[]; let current={heading:'',body:[]};
     const normalizeText=value=>String(value||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
-    const isStandaloneBold=el=>{
-      if(el.tagName!=='P') return false;
-      const text=normalizeText(el.textContent); if(!text||text.length>160||/^["“'‘]/.test(text)) return false;
-      const meaningful=[...el.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE&&normalizeText(node.textContent));
-      const child=el.children.length===1?el.children[0]:null;
-      return meaningful.length===0&&!!child&&/^(STRONG|B)$/.test(child.tagName)&&normalizeText(child.textContent)===text;
-    };
     if(!state.canonicalTemplate&&root.querySelector('img')){
-      return htcParseImagePositions(root,el=>/^H[1-6]$/.test(el.tagName)||isStandaloneBold(el));
+      return htcParseImagePositions(root,el=>/^H[1-6]$/.test(el.tagName));
     }
     [...root.children].forEach(el=>{
       const tag=el.tagName;
-      const isHeading=/^H[1-6]$/.test(tag)||isStandaloneBold(el);
+      const isHeading=/^H[1-6]$/.test(tag);
       if(isHeading){
         const heading=normalizeText(el.textContent);
         if(!current.heading&&!current.body.length&&normalizeText(state.title)===heading) return;
