@@ -109,7 +109,7 @@ function htcNormalizeBody(elements){
 }
 function htcInline(node){
   return [...node.childNodes].map(child=>{
-    if(child.nodeType===Node.TEXT_NODE)return htcText(child.textContent);
+    if(child.nodeType===Node.TEXT_NODE)return child.parentElement?.tagName==='A'?htcText(child.textContent):htcTextWithLinks(child.textContent);
     if(['IMG','SCRIPT','STYLE'].includes(child.tagName))return '';
     if(child.tagName==='BR')return ' ';
     const text=htcInline(child);
@@ -118,6 +118,15 @@ function htcInline(node){
   }).join('');
 }
 function htcAttr(value){return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function htcTextWithLinks(value){
+  const raw=String(value||''),pattern=/https?:\/\/[^\s<>"']+/g; let output='',last=0,match;
+  while((match=pattern.exec(raw))){
+    output+=htcText(raw.slice(last,match.index));
+    output+=`<a href="${htcAttr(match[0])}" target="_blank" rel="noopener noreferrer">${htcText(match[0])}</a>`;
+    last=match.index+match[0].length;
+  }
+  return output+htcText(raw.slice(last));
+}
 function htcList(node,depth=1,nested=false){
   const tag=node.tagName.toLowerCase();
   const className=tag==='ol'?'list-number':nested?'pl-4':'list list--color-green ';
