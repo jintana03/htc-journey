@@ -97,6 +97,17 @@ async function droppedFiles(dataTransfer){
 }
 input.addEventListener('change',e=>process(e.target.files).catch(err=>alert(err.message)));
 ['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('dragover')})); ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('dragover')})); dropzone.addEventListener('drop',async e=>{const files=await droppedFiles(e.dataTransfer);if(files.length)process(files).catch(err=>alert(err.message))});
+function updateLivePreviewFromCode(){
+  const output=$('#htmlOutput');
+  const previewArticle=$('#previewArticle');
+  if(!output||!previewArticle)return;
+  state.fullHtml=output.value;
+  let preview=output.value;
+  state.outputImages.forEach(image=>{preview=preview.replaceAll(htcImageSrc(image.name),image.previewUrl);});
+  if(state.coverImage?.previewUrl)preview=preview.replaceAll(htcImageSrc(state.coverImage.name),state.coverImage.previewUrl);
+  previewArticle.innerHTML=preview;
+}
+$('#htmlOutput').addEventListener('input',updateLivePreviewFromCode);
 $('#downloadHtml').addEventListener('click',downloadHtml); $('#downloadZip').addEventListener('click',downloadZip); $('#copyHtml').addEventListener('click',copyHtml); $('#copyHtmlBottom').addEventListener('click',copyHtml);
 document.querySelectorAll('.toggle-preview').forEach(button=>button.addEventListener('click',()=>{const target=$(`#${button.dataset.target}`);if(!target)return;target.hidden=!target.hidden;const grid=target.closest('.results-grid');if(target.id==='previewCard')grid?.classList.toggle('preview-hidden',target.hidden);button.textContent=target.hidden?'Show preview':'Hide preview';button.setAttribute('aria-expanded',String(!target.hidden));}));
 
