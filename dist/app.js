@@ -82,8 +82,37 @@ async function convertImage(file,index,options={}){
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.9)); URL.revokeObjectURL(img.src); const stamp=options.stamp||state.stamp; const elapsedSeconds=options.startedAt?Math.floor((Date.now()-options.startedAt)/1000):0; return {name:cover?`${stamp}-cover.webp`:imageName(index,stamp,elapsedSeconds),blob,width:targetW,height:targetH,source:file.name,previewUrl:URL.createObjectURL(blob)};
 }
 function saveBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
-input.addEventListener('change',e=>process(e.target.files).catch(err=>alert(err.message)));
-['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('dragover')})); ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('dragover')})); dropzone.addEventListener('drop',e=>{const files=e.dataTransfer.files;if(files.length)process(files).catch(err=>alert(err.message))});
+function readEntryFiles(items){
+  const output=[];
+  const readEntry=(entry,parent='')=>new Promise((resolve,reject)=>{
+    if(entry.isFile){entry.file(file=>{try{Object.defineProperty(file,'webkitRelativePath',{value:`${parent}${file.name}`});}catch{} output.push(file);resolve();},reject);return;}
+    const reader=entry.createReader(), readBatch=()=>reader.readEntries(async entries=>{if(!entries.length){resolve();return;}for(const child of entries)await readEntry(child,`${parent}${entry.name}/`);readBatch();},reject);readBatch();
+  });
+  return Promise.all([...items].map(item=>item.webkitGetAsEntry?.()).filter(Boolean).map(entry=>readEntry(entry))).then(()=>output);
+}
+async function droppedFiles(dataTransfer){
+  const entries=[...(dataTransfer.items||[])].filter(item=>item.kind==='file'&&item.webkitGetAsEntry);
+  if(entries.length)return readEntryFiles(entries);
+  return Array.from(dataTransfer.files||[]);
+}
+async function expandZipFiles(files){
+  const expanded=[];
+  for(const file of Array.from(files||[])){
+    if(!/\.zip$/i.test(file.name)){expanded.push(file);continue;}
+    if(!window.JSZip)throw new Error('ยังโหลดตัวอ่าน ZIP ไม่เสร็จ กรุณาลองใหม่อีกครั้ง');
+    const archive=await JSZip.loadAsync(file);
+    for(const entry of Object.values(archive.files)){
+      if(entry.dir||entry.name.startsWith('__MACOSX/'))continue;
+      const blob=await entry.async('blob'); const name=entry.name.split('/').pop(); if(!name)continue;
+      const extracted=new File([blob],name,{type:blob.type||''});
+      Object.defineProperty(extracted,'webkitRelativePath',{value:entry.name}); expanded.push(extracted);
+    }
+  }
+  return expanded;
+}
+async function processInputFiles(files){process(await expandZipFiles(files));}
+input.addEventListener('change',e=>processInputFiles(e.target.files).catch(err=>alert(err.message)));
+['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.add('dragover')})); ['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,e=>{e.preventDefault();dropzone.classList.remove('dragover')})); dropzone.addEventListener('drop',async e=>{const files=await droppedFiles(e.dataTransfer);if(files.length)processInputFiles(files).catch(err=>alert(err.message))});
 function updateLivePreviewFromCode(){
   const output=$('#htmlOutput');
   const previewArticle=$('#previewArticle');
@@ -182,12 +211,19 @@ function htcStripLeadingMetadata(root){
     const root=d.querySelector('#content-root'); htcStripLeadingMetadata(root);
     const sections=[]; let current={heading:'',body:[]};
     const normalizeText=value=>String(value||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+    const isStandaloneBold=el=>{
+      if(el.tagName!=='P') return false;
+      const text=normalizeText(el.textContent); if(!text||text.length>160||/^["“'‘]/.test(text)) return false;
+      const meaningful=[...el.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE&&normalizeText(node.textContent));
+      const child=el.children.length===1?el.children[0]:null;
+      return meaningful.length===0&&!!child&&/^(STRONG|B)$/.test(child.tagName)&&normalizeText(child.textContent)===text;
+    };
     if(!state.canonicalTemplate&&root.querySelector('img')){
       return htcParseImagePositions(root,el=>/^H[1-6]$/.test(el.tagName));
     }
     [...root.children].forEach(el=>{
       const tag=el.tagName;
-      const isHeading=/^H[1-6]$/.test(tag);
+      const isHeading=/^H[1-6]$/.test(tag)||(isStandaloneBold(el)&&!current.heading&&!current.body.length);
       if(isHeading){
         const heading=normalizeText(el.textContent);
         if(!current.heading&&!current.body.length&&normalizeText(state.title)===heading) return;
@@ -274,29 +310,24 @@ function htcBuildMarkup(sections,images){
 
 // HTC Journey Master Template: keep the supplied wrapper/classes exactly.
 function htcMedia(images){
-  let media='';
-  if(images.length===1){
-    media=`\t<div class="row justify-content-center no-gutters mb-4">\n\t\t<div class="col-md-8">\n\t\t\t${htcFigure(images[0])}\n\t\t</div>\n\t</div>`;
-  }else if(images.length===2){
-    media=`\t<div class="row justify-content-center no-gutters mb-4">\n${images.map(image=>`\t\t<div class="col-md-5">\n\t\t\t${htcFigure(image)}\n\t\t</div>`).join('\n')}\n\t</div>`;
-  }else if(images.length===3){
-    media=`\t<div class="row justify-content-center no-gutters mb-4">\n${images.map(image=>`\t\t<div class="col-md-4">\n\t\t\t${htcFigure(image)}\n\t\t</div>`).join('\n')}\n\t</div>`;
-  }else if(images.length===4){
-    const portraits=images.filter(image=>image.height/image.width>=1.05);
-    const landscapes=images.filter(image=>image.width/image.height>=1.05);
-    if(portraits.length===3&&landscapes.length===1){
-      const firstRow=portraits.map(image=>`\t\t<div class="col-md-3">\n\t\t\t${htcFigure(image)}\n\t\t</div>`).join('\n');
-      const lastRow=`\t\t<div class="col-md-9">\n\t\t\t${htcFigure(landscapes[0])}\n\t\t</div>`;
-      media=`\t<div class="row justify-content-center no-gutters">\n${firstRow}\n\t</div>\n\t<div class="row justify-content-center no-gutters mb-4">\n${lastRow}\n\t</div>`;
-    }else{
-      const rows=[images.slice(0,2),images.slice(2,4)];
-      media=rows.map((row,rowIndex)=>`\t<div class="row justify-content-center no-gutters${rowIndex===1?' mb-4':''}">\n${row.map(image=>`\t\t<div class="col-md-5">\n\t\t\t${htcFigure(image)}\n\t\t</div>`).join('\n')}\n\t</div>`).join('\n');
-    }
-  }else if(images.length===5 || images.length===6){
-    const rows=[images.slice(0,3),images.slice(3)];
-    media=rows.map((row,rowIndex)=>`\t<div class="row justify-content-center no-gutters${rowIndex===1?' mb-4':''}">\n${row.map(image=>`\t\t<div class="col-md-4">\n\t\t\t${htcFigure(image)}\n\t\t</div>`).join('\n')}\n\t</div>`).join('\n');
+  if(!images.length)return '';
+  const rows=[];
+  for(let index=0;index<images.length;){
+    const row=images.slice(index,index+Math.min(3,images.length-index));
+    const ratios=row.map(image=>image.width/Math.max(1,image.height));
+    const spread=ratios.length>1?Math.max(...ratios)/Math.max(.01,Math.min(...ratios)):1;
+    if(row.length===3&&spread>1.8){rows.push(row.slice(0,2));index+=2;}else{rows.push(row);index+=row.length;}
   }
-  return media;
+  const columnWidths=row=>{
+    if(row.length===1)return [8];
+    const ratios=row.map(image=>image.width/Math.max(1,image.height));
+    const spread=Math.max(...ratios)/Math.max(.01,Math.min(...ratios));
+    if(row.length===2&&spread<=1.08)return [5,5];
+    const maxRatio=Math.max(...ratios);
+    const maxColumn=row.length===2?6:4;
+    return ratios.map(ratio=>Math.max(1,Math.round(maxColumn*ratio/maxRatio)));
+  };
+  return rows.map((row,rowIndex)=>`\t<div class="row justify-content-center no-gutters${rowIndex===rows.length-1?' mb-4':''}">\n${row.map((image,index)=>`\t\t<div class="col-md-${columnWidths(row)[index]}">\n\t\t\t${htcFigure(image)}\n\t\t</div>`).join('\n')}\n\t</div>`).join('\n');
 }
 function htcLaterBlock(section,images){
   const media=htcMedia(images);
@@ -353,7 +384,7 @@ async function copyHtml(){
   const buttons=[$('#copyHtml'),$('#copyHtmlBottom')].filter(Boolean);buttons.forEach(button=>{button.textContent='คัดลอกแล้ว ✓';setTimeout(()=>{button.textContent=button.id==='copyHtml'?'คัดลอกโค้ด':'คัดลอกโค้ด ⧉';},1400);});
 }
 async function downloadHtml(){saveBlob(new Blob([state.fullHtml],{type:'text/html;charset=utf-8'}),'htc-journey.html');}
-async function downloadZip(){const zip=new JSZip();zip.file('htc-journey.html',state.fullHtml);const manifest=[...(state.coverImage?[{name:state.coverImage.name,width:1200,height:625,source:state.coverImage.source,type:'cover',src:htcImageSrc(state.coverImage.name)}]:[]),...state.outputImages.map(({name,width,height,source})=>({name,width,height,source,type:'article',src:htcImageSrc(name)}))];zip.file('image-manifest.json',JSON.stringify(manifest,null,2));const folder=zip.folder('images');state.outputImages.forEach(i=>folder.file(i.name,i.blob));if(state.coverImage)folder.file(state.coverImage.name,state.coverImage.blob);saveBlob(await zip.generateAsync({type:'blob'}),`htc-journey-${state.stamp}.zip`);}
+async function downloadZip(){const zip=new JSZip();zip.file('htc-journey.html',state.fullHtml);const folder=zip.folder('images');state.outputImages.forEach(i=>folder.file(i.name,i.blob));if(state.coverImage)folder.file(state.coverImage.name,state.coverImage.blob);saveBlob(await zip.generateAsync({type:'blob'}),`htc-journey-${state.stamp}.zip`);}
 
 const guideTrigger=$('#guideTrigger');
 const guideModal=$('#guideModal');
