@@ -311,8 +311,7 @@ function htcBuildMarkup(sections,images){
 // HTC Journey Master Template: keep the supplied wrapper/classes exactly.
 function htcMedia(images){
   if(!images.length)return '';
-  const threePortraitsAndLandscape=images.length===4&&images.slice(0,3).every(image=>image.height/image.width>=1.05)&&images[3].width/images[3].height>=1.05;
-  const equalFour=images.length===4&&!threePortraitsAndLandscape;
+  const equalFour=images.length===4;
   const rows=[];
   for(let index=0;index<images.length;){
     if(equalFour){rows.push(images.slice(index,index+2));index+=2;continue;}
