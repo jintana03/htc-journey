@@ -322,6 +322,7 @@ function htcMedia(images){
     if(row.length===3&&spread>1.8){rows.push(row.slice(0,2));index+=2;}else{rows.push(row);index+=row.length;}
   }
   const columnWidths=row=>{
+    if(equalFour)return [5,5];
     if(row.length===1)return [8];
     const ratios=row.map(image=>image.width/Math.max(1,image.height));
     const spread=Math.max(...ratios)/Math.max(.01,Math.min(...ratios));
