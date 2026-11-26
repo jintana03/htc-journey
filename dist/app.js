@@ -26,22 +26,12 @@ async function htcSelectSourceImages(files,content){
   const contentParent=parent(content);
   const direct=contentParent?candidates.filter(file=>parent(file)===contentParent):[];
   const scoped=direct.length?direct:candidates;
-  const groups=new Map(),images=[],bytesByFile=new Map();
+  const seenPaths=new Set(),images=[];
   let duplicates=0;
   for(const file of scoped){
-    const key=String(file.size??'unknown');
-    const matches=groups.get(key)||[];
-    let duplicate=false;
-    for(const previous of matches){
-      if(previous===file){duplicate=true;break;}
-      if(typeof previous.arrayBuffer!=='function'||typeof file.arrayBuffer!=='function')continue;
-      let left=bytesByFile.get(previous),right=bytesByFile.get(file);
-      if(!left){left=new Uint8Array(await previous.arrayBuffer());bytesByFile.set(previous,left);}
-      if(!right){right=new Uint8Array(await file.arrayBuffer());bytesByFile.set(file,right);}
-      if(left.length===right.length&&left.every((value,index)=>value===right[index])){duplicate=true;break;}
-    }
-    if(duplicate){duplicates++;continue;}
-    matches.push(file);groups.set(key,matches);images.push(file);
+    const key=(file.webkitRelativePath||file.name).replace(/\\/g,'/');
+    if(seenPaths.has(key)){duplicates++;continue;}
+    seenPaths.add(key);images.push(file);
   }
   images.sort((a,b)=>filenameOf(a).localeCompare(filenameOf(b),undefined,{numeric:true,sensitivity:'base'}));
   return {images,duplicates,otherFolders:candidates.length-scoped.length};
